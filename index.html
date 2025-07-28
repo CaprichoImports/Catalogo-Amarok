@@ -57,13 +57,10 @@
         <header class="mb-10 bg-red-700 text-white py-8 px-4 rounded-xl shadow-lg">
     <div class="container mx-auto text-center flex flex-col items-center">
         
-        <!-- Logotipo centralizado -->
-<div class="w-200 h-100 flex items-center justify-center mb-4">
-    <!-- Substitua abaixo com sua imagem real -->
-    <img src="Logotipo-Imports.PNG" alt="Logo Capricho Imports" class="h-auto max-h-28 object-contain">
+        <div class="max-w-xs flex items-center justify-center mb-4">
+    <img src="Logotipo-Imports.png" alt="Logo Capricho Imports" class="h-auto max-h-28 object-contain">
 </div>
         
-        <!-- Título e subtítulo -->
         <h1 class="text-3xl sm:text-4xl font-bold mb-2">Catálogo de Peças Amarok</h1>
         <p class="text-lg text-slate-300">Encontre as peças que você precisa.</p>
     </div>
@@ -74,16 +71,16 @@
                 <input type="text" id="searchInput" onkeyup="filterProducts()" placeholder="Buscar por SKU ou descrição..." class="w-full py-3 px-4 pl-10 border border-slate-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow">
                 <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
             </div>
-            <button id="cartButton" class="w-full md:w-auto flex items-center justify-center gap-3 bg-red-500 text-white font-semibold py-3 px-6 rounded-full shadow-lg hover:bg-red -650 transition-transform transform hover:scale-105">
+            <button id="cartButton" class="w-full md:w-auto flex items-center justify-center gap-3 bg-red-500 text-white font-semibold py-3 px-6 rounded-full shadow-lg hover:bg-red-600 transition-transform transform hover:scale-105">
                 <i class="fas fa-shopping-cart"></i>
                 <span>Ver Carrinho</span>
-                <span id="cart-count" class="bg-red text-red-650 text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center scale-0 transition-transform">0</span>
+                <span id="cart-count" class="bg-red-600 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center scale-0 transition-transform">0</span>
             </button>
         </div>
 
         <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             </div>
-         <div id="no-results" class="hidden text-center py-16">
+           <div id="no-results" class="hidden text-center py-16">
             <i class="fas fa-box-open text-6xl text-slate-400 mb-4"></i>
             <h3 class="text-2xl font-semibold text-slate-600">Nenhum produto encontrado</h3>
             <p class="text-slate-500">Tente ajustar sua busca.</p>
@@ -102,7 +99,7 @@
             <div id="modal-content-wrapper" class="modal-content overflow-y-auto p-6">
                 <div id="cart-items-container">
                     </div>
-                 <div id="empty-cart-message" class="text-center py-12">
+                   <div id="empty-cart-message" class="text-center py-12">
                     <i class="fas fa-shopping-cart text-6xl text-slate-300 mb-4"></i>
                     <h3 class="text-2xl font-semibold text-slate-600">Seu carrinho está vazio</h3>
                     <p class="text-slate-500">Adicione produtos do catálogo para vê-los aqui.</p>
@@ -115,7 +112,7 @@
                     <span id="total-price" class="text-3xl font-bold text-slate-800">R$ 0,00</span>
                 </div>
                 <div class="flex flex-col sm:flex-row justify-end gap-4">
-                     <button id="download-pdf-button" class="bg-red-600 text-white font-semibold py-3 px-6 rounded-full hover:bg-red-700 transition-transform transform hover:scale-105 flex items-center justify-center gap-2">
+                    <button id="download-pdf-button" class="bg-red-600 text-white font-semibold py-3 px-6 rounded-full hover:bg-red-700 transition-transform transform hover:scale-105 flex items-center justify-center gap-2">
                         <i class="fas fa-file-pdf"></i>
                         <span>Baixar PDF</span>
                     </button>
@@ -178,7 +175,7 @@
         const whatsappSellers = [
             { name: 'Vendedor Samir', phone: '5511947186353' },
             { name: 'Vendedor Marcelo', phone: '5511947277310' },
-            { name: 'Vendedor Ryan', phone: '  5511935859390' },
+            { name: 'Vendedor Ryan', phone: '5511935859390' }, // Corrected phone number
         ];
 
         // --- STATE ---
@@ -258,7 +255,7 @@
                         </div>
                         <div class="mt-6 flex gap-3 items-center">
                             <input type="number" id="qty-${product.id}" class="w-20 p-2 border border-slate-300 rounded-lg text-center" value="1" min="1">
-                            <button onclick="addToCart('${product.id}')" class="flex-1 bg-red-500 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-red-650 transition-transform transform hover:scale-105 flex items-center justify-center gap-2">
+                            <button onclick="addToCart('${product.id}')" class="flex-1 bg-red-500 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-red-600 transition-transform transform hover:scale-105 flex items-center justify-center gap-2">
                                 <i class="fas fa-cart-plus"></i>
                                 <span>Adicionar</span>
                             </button>

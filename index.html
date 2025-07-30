@@ -5,32 +5,100 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Catálogo Interativo - Peças Amarok</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+    <script nomodule src="https://unpkg.com/@google/model-viewer/dist/model-viewer-legacy.js"></script>
+
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f1f5f9;
+            background-color: #FEECEB; /* Fundo em tom de vermelho bem claro */
+            color: #333;
+            line-height: 1.6;
         }
-        /* Custom scrollbar for better aesthetics */
+
+        /* Scrollbar personalizada */
         ::-webkit-scrollbar {
-            width: 8px;
+            width: 10px;
         }
         ::-webkit-scrollbar-track {
-            background: #f1f5f9;
+            background: #FEECEB;
         }
         ::-webkit-scrollbar-thumb {
-            background: #94a3b8;
+            background: #E53935; /* Vermelho vibrante */
             border-radius: 10px;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: #64748b;
+            background: #D32F2F; /* Vermelho mais escuro no hover */
         }
+
         .modal-content {
             max-height: 80vh;
         }
-        /* Hidden print section, not strictly needed for jsPDF direct drawing but kept for structure */
+
+        /* Animações CSS */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideInUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-10px);
+            }
+            60% {
+                transform: translateY(-5px);
+            }
+        }
+
+        .animate-fadeIn {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .animate-slideInUp {
+            animation: slideInUp 0.6s ease-out;
+        }
+
+        .animate-bounce-custom {
+            animation: bounce 1s infinite;
+        }
+        
+        /* Transições de Modal */
+        .modal-enter-active, .modal-leave-active {
+            transition: all 0.3s ease;
+        }
+        .modal-enter-from, .modal-leave-to {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+
+        /* Estilos específicos para o Visualizador 360° */
+        model-viewer {
+            width: 100%;
+            height: 100%;
+            display: block; /* Garante que ocupe o espaço corretamente */
+        }
+        .model-viewer-loading-text {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #ef9a9a; /* Vermelho claro para o texto de carregamento */
+            font-size: 1.125rem; /* text-lg */
+            height: 100%; /* Garante que ocupe todo o slot */
+        }
+
+        /* Seção de Impressão (oculta no site, visível apenas na impressão) */
         @media print {
             body * {
                 visibility: hidden;
@@ -50,103 +118,113 @@
         }
     </style>
 </head>
-<body class="antialiased text-slate-700">
+<body class="antialiased">
 
     <div class="container mx-auto p-4 sm:p-6 lg:p-8">
 
-        <header class="mb-10 bg-red-700 text-white py-8 px-4 rounded-xl shadow-lg">
-    <div class="container mx-auto text-center flex flex-col items-center">
-        
-        <!-- Logotipo centralizado -->
-<div class="w-200 h-100 flex items-center justify-center mb-4">
-    <!-- Substitua abaixo com sua imagem real -->
-    <img src="https://http2.mlstatic.com/storage/mshops-appearance-api/images/16/130087516/logo-2021060911130847000.png" alt="Logo Capricho Imports" class="h-auto max-h-28 object-contain">
-</div>
-        
-        <!-- Título e subtítulo -->
-        <h1 class="text-3xl sm:text-4xl font-bold mb-2">Catálogo de Peças Amarok</h1>
-        <p class="text-lg text-slate-300">Encontre as peças que você precisa.</p>
-    </div>
-</header>
-
-        <div class="flex flex-col md:flex-row gap-4 justify-between items-center mb-8 sticky top-4 z-20 bg-f1f5f9/80 backdrop-blur-sm p-4 rounded-xl shadow-sm no-print">
-            <div class="relative w-full md:w-1/2 lg:w-1/3">
-                <input type="text" id="searchInput" onkeyup="filterProducts()" placeholder="Buscar por SKU ou descrição..." class="w-full py-3 px-4 pl-10 border border-slate-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow">
-                <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+        <header class="mb-10 bg-gradient-to-r from-red-700 to-red-900 text-white py-10 px-4 rounded-3xl shadow-2xl animate-fadeIn">
+            <div class="container mx-auto text-center flex flex-col items-center">
+                <div class="w-full max-w-sm h-64 mb-6 relative overflow-hidden rounded-xl bg-red-800 flex items-center justify-center shadow-inner">
+                    <model-viewer src="abstract-shape.glb"
+                                  alt="Modelo 3D de uma peça da Amarok"
+                                  ar
+                                  shadow-intensity="1"
+                                  camera-controls
+                                  auto-rotate
+                                  style="width: 100%; height: 100%;"
+                                  loading="eager"
+                                  camera-orbit="-30deg 75deg auto"
+                                  exposure="1.2">
+                        <div slot="poster" class="model-viewer-loading-text">
+                            <i class="fas fa-sync-alt fa-spin text-4xl mb-2"></i>
+                            Carregando Visualização 360°...
+                        </div>
+                    </model-viewer>
+                </div>
+                
+                <h1 class="text-4xl sm:text-5xl font-extrabold mb-3 drop-shadow-lg">Catálogo de Peças Amarok</h1>
+                <p class="text-xl text-red-200 font-light">Explore a excelência em cada componente.</p>
             </div>
-            <button id="cartButton" class="w-full md:w-auto flex items-center justify-center gap-3 bg-red-500 text-white font-semibold py-3 px-6 rounded-full shadow-lg hover:bg-red -650 transition-transform transform hover:scale-105">
-                <i class="fas fa-shopping-cart"></i>
-                <span>Ver Carrinho</span>
-                <span id="cart-count" class="bg-red text-red-650 text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center scale-0 transition-transform">0</span>
+        </header>
+
+        <div class="flex flex-col md:flex-row gap-6 justify-between items-center mb-10 sticky top-6 z-20 bg-white/90 backdrop-blur-md p-5 rounded-full shadow-xl no-print border border-red-100 animate-slideInUp">
+            <div class="relative w-full md:w-1/2 lg:w-1/3 group">
+                <input type="text" id="searchInput" onkeyup="filterProducts()" placeholder="Buscar por SKU ou descrição..." 
+                       class="w-full py-3 px-6 pl-12 border-2 border-red-300 rounded-full focus:outline-none focus:ring-4 focus:ring-red-500 focus:border-red-500 transition-all duration-300 text-lg text-slate-700 placeholder-slate-400 shadow-sm">
+                <i class="fas fa-search absolute left-5 top-1/2 -translate-y-1/2 text-red-400 group-focus-within:text-red-600 transition-colors duration-300"></i>
+            </div>
+            <button id="cartButton" class="w-full md:w-auto flex items-center justify-center gap-3 bg-red-600 text-white font-bold py-3 px-8 rounded-full shadow-lg hover:bg-red-700 transition-all duration-300 transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-4 focus:ring-red-300 relative group">
+                <i class="fas fa-shopping-cart text-xl"></i>
+                <span class="text-lg">Ver Carrinho</span>
+                <span id="cart-count" class="absolute -top-2 -right-2 bg-red-200 text-red-800 text-sm font-extrabold rounded-full h-7 w-7 flex items-center justify-center scale-0 transition-transform duration-300 origin-center group-hover:scale-110">0</span>
             </button>
         </div>
 
-        <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
             </div>
-         <div id="no-results" class="hidden text-center py-16">
-            <i class="fas fa-box-open text-6xl text-slate-400 mb-4"></i>
-            <h3 class="text-2xl font-semibold text-slate-600">Nenhum produto encontrado</h3>
-            <p class="text-slate-500">Tente ajustar sua busca.</p>
+
+        <div id="no-results" class="hidden text-center py-20 animate-fadeIn">
+            <i class="fas fa-box-open text-7xl text-red-400 mb-6 animate-pulse"></i>
+            <h3 class="text-3xl font-bold text-red-700 mb-2">Nenhum produto encontrado</h3>
+            <p class="text-lg text-red-500">Tente ajustar sua busca ou explore outras categorias.</p>
         </div>
     </div>
 
-    <div id="cartModal" class="fixed inset-0 bg-black bg-opacity-60 z-50 hidden flex items-center justify-center p-4 no-print">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl transform transition-all duration-300 scale-95 opacity-0">
-            <div class="flex justify-between items-center p-6 border-b border-slate-200">
-                <h2 class="text-2xl font-bold text-slate-800">Seu Carrinho de Compras</h2>
-                <button id="closeModal" class="text-slate-400 hover:text-slate-600 transition-colors">
+    <div id="cartModal" class="fixed inset-0 bg-black bg-opacity-70 z-50 hidden flex items-center justify-center p-4 no-print modal-enter-from">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-4xl transform modal-content-inner p-6 animate-slideInUp">
+            <div class="flex justify-between items-center pb-5 border-b border-red-100 mb-6">
+                <h2 class="text-3xl font-bold text-red-800"><i class="fas fa-shopping-bag mr-3"></i>Seu Carrinho de Compras</h2>
+                <button id="closeModal" class="text-red-400 hover:text-red-600 transition-colors duration-200 transform hover:scale-110">
                     <i class="fas fa-times fa-2x"></i>
                 </button>
             </div>
             
-            <div id="modal-content-wrapper" class="modal-content overflow-y-auto p-6">
-                <div id="cart-items-container">
+            <div id="modal-content-wrapper" class="modal-content overflow-y-auto pr-2">
+                <div id="cart-items-container" class="space-y-5">
                     </div>
-                 <div id="empty-cart-message" class="text-center py-12">
-                    <i class="fas fa-shopping-cart text-6xl text-slate-300 mb-4"></i>
-                    <h3 class="text-2xl font-semibold text-slate-600">Seu carrinho está vazio</h3>
-                    <p class="text-slate-500">Adicione produtos do catálogo para vê-los aqui.</p>
+                <div id="empty-cart-message" class="text-center py-16 animate-fadeIn">
+                    <i class="fas fa-shopping-cart text-7xl text-red-300 mb-6"></i>
+                    <h3 class="text-3xl font-semibold text-red-600 mb-2">Seu carrinho está vazio!</h3>
+                    <p class="text-lg text-red-500">Adicione produtos do catálogo para vê-los aqui.</p>
                 </div>
             </div>
 
-            <div class="p-6 bg-slate-50 rounded-b-2xl border-t border-slate-200">
-                <div class="flex justify-end items-center mb-4">
-                    <span class="text-lg font-semibold text-slate-600 mr-4">Total:</span>
-                    <span id="total-price" class="text-3xl font-bold text-slate-800">R$ 0,00</span>
+            <div class="pt-6 bg-red-50 rounded-b-3xl border-t-2 border-red-200 mt-6 -mx-6 px-6">
+                <div class="flex justify-end items-center mb-6">
+                    <span class="text-2xl font-semibold text-red-700 mr-6">Total:</span>
+                    <span id="total-price" class="text-4xl font-extrabold text-red-900 drop-shadow-md">R$ 0,00</span>
                 </div>
-                <div class="flex flex-col sm:flex-row justify-end gap-4">
-                     <button id="download-pdf-button" class="bg-red-600 text-white font-semibold py-3 px-6 rounded-full hover:bg-red-700 transition-transform transform hover:scale-105 flex items-center justify-center gap-2">
-                        <i class="fas fa-file-pdf"></i>
-                        <span>Baixar PDF</span>
+                <div class="flex flex-col sm:flex-row justify-end gap-5">
+                    <button id="download-pdf-button" class="bg-red-600 text-white font-bold py-3 px-8 rounded-full hover:bg-red-700 transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-3 shadow-lg focus:outline-none focus:ring-4 focus:ring-red-300">
+                        <i class="fas fa-file-pdf text-xl"></i>
+                        <span class="text-lg">Baixar PDF</span>
                     </button>
-                    <button id="send-whatsapp-button" class="bg-green-600 text-white font-semibold py-3 px-6 rounded-full hover:bg-green-700 transition-transform transform hover:scale-105 flex items-center justify-center gap-2">
-                        <i class="fab fa-whatsapp"></i>
-                        <span>Enviar WhatsApp</span>
+                    <button id="send-whatsapp-button" class="bg-green-600 text-white font-bold py-3 px-8 rounded-full hover:bg-green-700 transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-3 shadow-lg focus:outline-none focus:ring-4 focus:ring-green-300">
+                        <i class="fab fa-whatsapp text-xl"></i>
+                        <span class="text-lg">Enviar WhatsApp</span>
                     </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="whatsappSellerModal" class="fixed inset-0 bg-black bg-opacity-60 z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm transform transition-all duration-300 scale-95 opacity-0">
-            <div class="flex justify-between items-center p-6 border-b border-slate-200">
-                <h2 class="text-xl font-bold text-slate-800">Enviar para qual vendedor?</h2>
-                <button id="closeWhatsappModal" class="text-slate-400 hover:text-slate-600 transition-colors">
+    <div id="whatsappSellerModal" class="fixed inset-0 bg-black bg-opacity-70 z-50 hidden flex items-center justify-center p-4 modal-enter-from">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm transform modal-content-inner p-6 animate-slideInUp">
+            <div class="flex justify-between items-center pb-5 border-b border-red-100 mb-6">
+                <h2 class="text-2xl font-bold text-red-800"><i class="fas fa-user-tie mr-2"></i>Enviar para qual vendedor?</h2>
+                <button id="closeWhatsappModal" class="text-red-400 hover:text-red-600 transition-colors duration-200 transform hover:scale-110">
                     <i class="fas fa-times fa-2x"></i>
                 </button>
             </div>
-            <div class="p-6 flex flex-col gap-4" id="whatsapp-buttons-container">
+            <div class="p-4 flex flex-col gap-4" id="whatsapp-buttons-container">
                 </div>
         </div>
     </div>
 
-
-    <div id="print-section" class="hidden">
-        </div>
+    <div id="print-section" class="hidden"></div>
 
     <script>
-        // --- DATA ---
+        // --- DADOS ---
         const products = [
             { id: 'CI11624', name: 'Mangueira Tubo De Água Man Cabeçote Vw Amarok 3.0 V6 - 059121086BG', price: 359.00, image: 'https://s3.amazonaws.com/tiny-anexos-us/erp/NDYzMDgyMDY3/190bcdb8e30892bec16d1bfe647651d6.jpg' },
             { id: 'CI11605', name: 'Flange Fluxo Agua Cabecote Aluminio Vw Amarok Audi A4 A5 Q3 Q5 A606H121132H', price: 69.00, image: 'https://s3.amazonaws.com/tiny-anexos-us/erp/NDYzMDgyMDY3/7aedfad7c8415bdc176f0ed6ff6845a8.png' },
@@ -158,7 +236,7 @@
             { id: 'CI6031', name: 'Resfriador De Óleo Audi A1 A4 A5 Q3 Q5 TT VW Amarok Passat Golf - 03L115389H', price: 299.00, image: 'https://anexos.tiny.com.br/erp/NDYzMDgyMDY3/8e5b0ac0b486b342bcf8758ce75cf6b2.jpg' },
             { id: 'CI9578JA-CI9578JB', name: 'Kit Juntas Resfriador De Óleo Vw Amarok 2.0 16v 2010 Em Diante', price: 52.00, image: 'https://anexos.tiny.com.br/erp/NDYzMDgyMDY3/8403e534046f49f1b62eabb1ff9be810.jpg' },
             { id: 'CI10649', name: 'Válvula Termostática Volkswagen Amarok Audi Q7 3.0 TDI-059121111CR', price: 569.00, image: 'https://anexos.tiny.com.br/erp/NDYzMDgyMDY3/c30f888dbdcb6cb7770c01f87cfde28a.jpg' },
-            { id: 'CI7124', name: 'Válvula Termostática Volkswagen Amarok 2.0 16v Tdi Diesel 10/17- 03L121111AB', price: 149.00, image: 'https://anexos.tiny.com.br/erp/NDYzMDgyMDY3/5052fc36fa3f238750ddaed9568dfd1d.jpg' },
+            { id: 'CI7124', name: 'Válvula Termostática Volkswagen Amarok 2.0 16v Tdi Diesel 10/17- 03L121111AB', price: 149.00, image: 'https://anexos.tiny.com.br/erp/NDYzODgyMDY3/5052fc36fa3f238750ddaed9568dfd1d.jpg' },
             { id: 'CI7465', name: 'Flange do Fluxo D\'Água Volkswagen Amarok 2.0 16v Biturbo 10/15 Alumínio', price: 139.00, image: 'https://anexos.tiny.com.br/erp/NDYzMDgyMDY3/384d3b5101a2b0603a913594d59e3346.jpg' },
             { id: '504416', name: 'Reservatório Óleo Direção Hidráulica Original Vw Amarok Gol Voyage Saveiro - 2H0422371B', price: 125.00, image: 'https://s3.amazonaws.com/tiny-anexos-us/erp/NDYzMDgyMDY3/dbbf5c15337bb4ca80d8cd649375b60f.png' },
             { id: 'CI8412', name: 'Tampa de Válvula Volkswagen Amarok 2.0 16v 2010 A 2018 03L103469F', price: 339.00, image: 'https://anexos.tiny.com.br/erp/NDYzMDgyMDY3/f71c67b1fbe76f9e376d4d525218c2d0.jpg' },
@@ -174,22 +252,24 @@
             { id: 'CI11522-CI11525', name: 'Par Junta Do Cabeçote 3 Pic Vw Amarok 3.0 V6 2017 Em Diante 059103149AL 059103148AL', price: 399.00, image: 'https://s3.amazonaws.com/tiny-anexos-us/erp/NDYzMDgyMDY3/8c7aa6cca5cb7a889e4aa0b12fcd3fa9.jpg' },
         ];
 
-        // WhatsApp Sellers
+        // Vendedores WhatsApp
         const whatsappSellers = [
             { name: 'Vendedor Samir', phone: '5511947186353' },
             { name: 'Vendedor Marcelo', phone: '5511947277310' },
-            { name: 'Vendedor Ryan', phone: '  5511935859390' },
+            { name: 'Vendedor Ryan', phone: '5511935859390' },
         ];
 
-        // --- STATE ---
+        // --- ESTADO DA APLICAÇÃO ---
         let cart = {}; // { productId: quantity }
 
-        // --- DOM ELEMENTS ---
+        // --- ELEMENTOS DO DOM ---
         let productGrid, searchInput, cartButton, cartModal, closeModal, cartItemsContainer,
             totalPriceEl, cartCountEl, emptyCartMessage, downloadPdfButton, sendWhatsappButton,
             whatsappSellerModal, closeWhatsappModal, whatsappButtonsContainer, noResultsDiv;
+        
+        // As variáveis relacionadas ao zoom de imagem foram removidas daqui.
 
-        // Function to initialize DOM elements after the DOM is fully loaded
+        // Função para inicializar os elementos do DOM após o carregamento da página
         const initializeDOMElements = () => {
             productGrid = document.getElementById('product-grid');
             searchInput = document.getElementById('searchInput');
@@ -205,10 +285,12 @@
             whatsappSellerModal = document.getElementById('whatsappSellerModal');
             closeWhatsappModal = document.getElementById('closeWhatsappModal');
             whatsappButtonsContainer = document.getElementById('whatsapp-buttons-container');
-            noResultsDiv = document.getElementById('no-results'); // Ensure this is also captured
+            noResultsDiv = document.getElementById('no-results');
+
+            // As inicializações de elementos DOM para o zoom de imagem foram removidas.
         };
 
-        // --- UTILITY FUNCTIONS ---
+        // --- FUNÇÕES DE UTILIDADE ---
         const formatCurrency = (value) => {
             return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
         };
@@ -216,7 +298,7 @@
         const getImageBase64 = (url) => {
             return new Promise((resolve, reject) => {
                 const img = new Image();
-                img.crossOrigin = 'Anonymous';
+                img.crossOrigin = 'Anonymous'; // Importante para carregar imagens de outros domínios para o canvas
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
                     canvas.width = img.width;
@@ -226,17 +308,17 @@
                     resolve(canvas.toDataURL('image/png'));
                 };
                 img.onerror = (error) => {
-                    console.error('Failed to load image for PDF:', url, error);
-                    // Resolve with a placeholder if image fails to load, so PDF generation continues
-                    resolve('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='); // Transparent 1x1 pixel
+                    console.error('Falha ao carregar imagem para PDF:', url, error);
+                    // Retorna um pixel transparente para não quebrar o PDF se a imagem falhar
+                    resolve('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='); 
                 };
                 img.src = url;
             });
         };
 
-        // --- RENDER FUNCTIONS ---
+        // --- FUNÇÕES DE RENDERIZAÇÃO ---
         const renderProducts = (productsToRender = products) => {
-            if (!productGrid) return; // Basic check if element exists
+            if (!productGrid) return;
             productGrid.innerHTML = '';
             if (productsToRender.length === 0) {
                 noResultsDiv.classList.remove('hidden');
@@ -245,20 +327,23 @@
             }
             productsToRender.forEach(product => {
                 const card = document.createElement('div');
-                card.className = 'bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col';
+                card.className = 'bg-white rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-300 flex flex-col transform hover:-translate-y-2 animate-slideInUp';
                 card.innerHTML = `
-                    <div class="relative">
-                        <img class="w-full h-auto max-h-60 object-contain mx-auto" src="${product.image}" alt="Imagem de ${product.name}" onerror="this.onerror=null;this.src='https://placehold.co/400x400/e2e8f0/4a5568?text=Imagem+Indisponível';">
+                    <div class="relative h-48 flex items-center justify-center p-4">
+                        <img class="max-h-full max-w-full object-contain mx-auto transition-transform duration-300 hover:scale-105"
+                             src="${product.image}"
+                             alt="Imagem de ${product.name}"
+                             onerror="this.onerror=null;this.src='https://placehold.co/400x400/FFCDD2/B71C1C?text=Imagem+Indisponível';">
                     </div>
-                    <div class="p-6 flex flex-col flex-grow">
+                    <div class="p-6 flex flex-col flex-grow border-t border-red-100">
                         <div class="flex-grow">
-                            <div class="font-semibold text-sm text-blue-500 uppercase tracking-wide">${product.id}</div>
-                            <h3 class="mt-1 text-lg leading-tight font-semibold text-slate-800">${product.name}</h3>
-                            <p class="mt-2 text-3xl font-bold text-slate-900">${formatCurrency(product.price)}</p>
+                            <div class="font-bold text-sm text-red-600 uppercase tracking-wider mb-1">${product.id}</div>
+                            <h3 class="mt-1 text-xl leading-tight font-extrabold text-red-900 mb-2">${product.name}</h3>
+                            <p class="mt-2 text-4xl font-extrabold text-red-700">${formatCurrency(product.price)}</p>
                         </div>
                         <div class="mt-6 flex gap-3 items-center">
-                            <input type="number" id="qty-${product.id}" class="w-20 p-2 border border-slate-300 rounded-lg text-center" value="1" min="1">
-                            <button onclick="addToCart('${product.id}')" class="flex-1 bg-red-500 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-red-650 transition-transform transform hover:scale-105 flex items-center justify-center gap-2">
+                            <input type="number" id="qty-${product.id}" class="w-24 p-3 border-2 border-red-300 rounded-lg text-center text-lg font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all" value="1" min="1">
+                            <button onclick="addToCart('${product.id}')" class="flex-1 bg-red-600 text-white font-bold py-3 px-4 rounded-xl shadow-lg hover:bg-red-700 transition-all duration-300 transform hover:scale-105 active:scale-95 flex items-center justify-center gap-2 text-lg">
                                 <i class="fas fa-cart-plus"></i>
                                 <span>Adicionar</span>
                             </button>
@@ -270,7 +355,7 @@
         };
 
         const renderCart = () => {
-            if (!cartItemsContainer) return; // Basic check if element exists
+            if (!cartItemsContainer) return;
             cartItemsContainer.innerHTML = '';
             let total = 0;
             let itemCount = 0;
@@ -278,38 +363,43 @@
             const cartProductIds = Object.keys(cart);
 
             if (cartProductIds.length === 0) {
-                emptyCartMessage.style.display = 'block';
+                emptyCartMessage.classList.remove('hidden');
                 downloadPdfButton.disabled = true;
                 sendWhatsappButton.disabled = true;
+                downloadPdfButton.classList.add('opacity-50', 'cursor-not-allowed');
+                sendWhatsappButton.classList.add('opacity-50', 'cursor-not-allowed');
             } else {
-                emptyCartMessage.style.display = 'none';
+                emptyCartMessage.classList.add('hidden');
                 downloadPdfButton.disabled = false;
                 sendWhatsappButton.disabled = false;
+                downloadPdfButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                sendWhatsappButton.classList.remove('opacity-50', 'cursor-not-allowed');
+
                 cartProductIds.forEach(productId => {
                     const product = products.find(p => p.id === productId);
-                    if (!product) return; // Ensure product exists before rendering
+                    if (!product) return;
                     const quantity = cart[productId];
                     const subtotal = product.price * quantity;
                     total += subtotal;
                     itemCount += quantity;
 
                     const cartItem = document.createElement('div');
-                    cartItem.className = 'flex items-center gap-4 p-4 border-b border-slate-200 last:border-b-0';
+                    cartItem.className = 'flex items-center gap-5 p-4 bg-red-50 rounded-lg shadow-sm animate-fadeIn';
                     cartItem.innerHTML = `
-                        <img src="${product.image}" alt="${product.name}" class="w-20 h-20 object-cover rounded-lg" onerror="this.onerror=null;this.src='https://placehold.co/80x80/e2e8f0/4a5568?text=Img';">
+                        <img src="${product.image}" alt="${product.name}" class="w-24 h-24 object-contain rounded-md border border-red-200 p-1" onerror="this.onerror=null;this.src='https://placehold.co/96x96/FFCDD2/B71C1C?text=Img';">
                         <div class="flex-grow">
-                            <h4 class="font-semibold text-slate-800">${product.name}</h4>
-                            <p class="text-sm text-slate-500">${product.id}</p>
-                            <p class="text-sm font-bold text-blue-600">${formatCurrency(product.price)}</p>
+                            <h4 class="font-bold text-lg text-red-800">${product.name}</h4>
+                            <p class="text-sm text-red-600 mb-1">SKU: ${product.id}</p>
+                            <p class="text-md font-bold text-red-700">${formatCurrency(product.price)} <span class="text-slate-500 font-normal">/un</span></p>
                         </div>
-                        <div class="flex items-center gap-3">
-                             <button onclick="updateQuantity('${product.id}', ${quantity - 1})" class="w-8 h-8 rounded-full bg-slate-200 hover:bg-slate-300 transition">-</button>
-                            <span class="font-semibold w-8 text-center">${quantity}</span>
-                             <button onclick="updateQuantity('${product.id}', ${quantity + 1})" class="w-8 h-8 rounded-full bg-slate-200 hover:bg-slate-300 transition">+</button>
+                        <div class="flex items-center gap-2">
+                            <button onclick="updateQuantity('${product.id}', ${quantity - 1})" class="w-9 h-9 rounded-full bg-red-200 text-red-800 hover:bg-red-300 transition-colors flex items-center justify-center text-xl font-bold">-</button>
+                            <span class="font-extrabold w-10 text-center text-xl text-red-800">${quantity}</span>
+                            <button onclick="updateQuantity('${product.id}', ${quantity + 1})" class="w-9 h-9 rounded-full bg-red-200 text-red-800 hover:bg-red-300 transition-colors flex items-center justify-center text-xl font-bold">+</button>
                         </div>
-                        <p class="font-semibold w-28 text-right">${formatCurrency(subtotal)}</p>
-                        <button onclick="removeFromCart('${product.id}')" class="text-red-500 hover:text-red-700 transition">
-                            <i class="fas fa-trash-alt fa-lg"></i>
+                        <p class="font-extrabold text-xl w-32 text-right text-red-900">${formatCurrency(subtotal)}</p>
+                        <button onclick="removeFromCart('${product.id}')" class="text-red-500 hover:text-red-700 transition-colors transform hover:scale-110">
+                            <i class="fas fa-trash-alt fa-xl"></i>
                         </button>
                     `;
                     cartItemsContainer.appendChild(cartItem);
@@ -318,12 +408,14 @@
 
             totalPriceEl.textContent = formatCurrency(total);
             cartCountEl.textContent = itemCount;
+            // Animação e visibilidade do contador do carrinho
             cartCountEl.classList.toggle('scale-0', itemCount === 0);
             cartCountEl.classList.toggle('scale-100', itemCount > 0);
+            cartCountEl.classList.toggle('animate-bounce-custom', itemCount > 0);
         };
 
-        // --- EVENT HANDLERS & LOGIC ---
-        window.filterProducts = () => { // Make global for onkeyup
+        // --- MANIPULADORES DE EVENTOS E LÓGICA ---
+        window.filterProducts = () => {
             const searchTerm = searchInput.value.toLowerCase();
             const filteredProducts = products.filter(product =>
                 product.name.toLowerCase().includes(searchTerm) ||
@@ -332,7 +424,7 @@
             renderProducts(filteredProducts);
         };
 
-        window.addToCart = (productId) => { // Make global for onclick
+        window.addToCart = (productId) => {
             const quantityInput = document.getElementById(`qty-${productId}`);
             const quantity = parseInt(quantityInput.value, 10);
             if (quantity > 0) {
@@ -341,18 +433,19 @@
             renderCart();
             
             const cartBtn = document.getElementById('cartButton');
-            if (cartBtn) { // Ensure cartBtn exists
-                cartBtn.classList.add('animate-bounce');
-                setTimeout(() => cartBtn.classList.remove('animate-bounce'), 1000);
+            if (cartBtn) {
+                // Adiciona e remove a classe de animação para um efeito de "pulso"
+                cartBtn.classList.add('animate-bounce-custom');
+                setTimeout(() => cartBtn.classList.remove('animate-bounce-custom'), 1000);
             }
         };
 
-        window.removeFromCart = (productId) => { // Make global for onclick
+        window.removeFromCart = (productId) => {
             delete cart[productId];
             renderCart();
         };
         
-        window.updateQuantity = (productId, newQuantity) => { // Make global for onclick
+        window.updateQuantity = (productId, newQuantity) => {
             if (newQuantity <= 0) {
                 removeFromCart(productId);
             } else {
@@ -361,21 +454,26 @@
             renderCart();
         }
 
-        const openModal = () => {
-            renderCart();
-            cartModal.classList.remove('hidden');
+        // Funções genéricas para abrir e fechar modais
+        const openModal = (modalElement) => {
+            modalElement.classList.remove('hidden');
             setTimeout(() => {
-                cartModal.querySelector('div').classList.remove('scale-95', 'opacity-0');
+                modalElement.classList.remove('modal-enter-from');
+                modalElement.querySelector('div').classList.remove('scale-95', 'opacity-0');
             }, 10);
         };
 
-        const closeModalHandler = () => {
-            cartModal.querySelector('div').classList.add('scale-95', 'opacity-0');
+        const closeModalHandler = (modalElement) => {
+            modalElement.querySelector('div').classList.add('scale-95', 'opacity-0');
+            modalElement.classList.add('modal-leave-to');
             setTimeout(() => {
-                cartModal.classList.add('hidden');
+                modalElement.classList.add('hidden');
+                modalElement.classList.remove('modal-leave-to');
+                modalElement.classList.add('modal-enter-from'); // Reinicia para a próxima abertura
             }, 300);
         };
 
+        // Geração do PDF
         const generatePdf = async () => {
             if (Object.keys(cart).length === 0) {
                 alert('Seu carrinho está vazio. Adicione itens antes de baixar o PDF.');
@@ -389,68 +487,78 @@
             let yPos = margin;
             const lineHeight = 18;
             const imageSize = 60;
+            const tableWidth = doc.internal.pageSize.width - (2 * margin);
 
-            doc.setFontSize(24);
-            doc.setFont('helvetica', 'bold');
-            doc.text('Lista de Compra - Peças Amarok', doc.internal.pageSize.width / 2, yPos, { align: 'center' });
-            yPos += 30;
-            doc.setFontSize(12);
-            doc.setFont('helvetica', 'normal');
-            doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, doc.internal.pageSize.width / 2, yPos, { align: 'center' });
-            yPos += 40;
+            // Cabeçalho do PDF
+            doc.setFontSize(28);
+            doc.setFont('Inter', 'Bold');
+            doc.setTextColor('#B71C1C'); // Vermelho Escuro
+            doc.text('Catálogo de Peças Amarok', doc.internal.pageSize.width / 2, yPos, { align: 'center' });
+            yPos += 35;
+            doc.setFontSize(14);
+            doc.setFont('Inter', 'Medium');
+            doc.setTextColor('#D32F2F'); // Vermelho Mais Escuro
+            doc.text(`Lista de Compra - Gerado em: ${new Date().toLocaleDateString('pt-BR')}`, doc.internal.pageSize.width / 2, yPos, { align: 'center' });
+            yPos += 50;
 
-            doc.setFillColor(242, 242, 242);
-            doc.rect(margin, yPos, doc.internal.pageSize.width - (2 * margin), lineHeight + 5, 'F');
+            // Cabeçalho da Tabela
+            doc.setFillColor('#FFCDD2'); // Vermelho Claro
+            doc.rect(margin, yPos, tableWidth, lineHeight + 10, 'F');
 
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'bold');
-            doc.setTextColor(51, 51, 51);
+            doc.setFontSize(11);
+            doc.setFont('Inter', 'Bold');
+            doc.setTextColor('#333'); // Cinza Escuro
 
             const colImage = margin + 5;
-            const colSKU = margin + imageSize + 15;
+            const colSKU = margin + imageSize + 20;
             const colDesc = margin + imageSize + 110;
             const colQty = doc.internal.pageSize.width - margin - 120;
             const colUnitVal = doc.internal.pageSize.width - margin - 60;
             const colTotalVal = doc.internal.pageSize.width - margin - 5;
 
-            doc.text('Imagem', colImage, yPos + lineHeight / 2 + 2);
-            doc.text('SKU', colSKU, yPos + lineHeight / 2 + 2);
-            doc.text('Descrição', colDesc, yPos + lineHeight / 2 + 2);
-            doc.text('Qtd.', colQty, yPos + lineHeight / 2 + 2, { align: 'right' });
-            doc.text('Vlr. Unit.', colUnitVal, yPos + lineHeight / 2 + 2, { align: 'right' });
-            doc.text('Vlr. Total', colTotalVal, yPos + lineHeight / 2 + 2, { align: 'right' });
+            doc.text('Imagem', colImage, yPos + (lineHeight + 10) / 2 + 2);
+            doc.text('SKU', colSKU, yPos + (lineHeight + 10) / 2 + 2);
+            doc.text('Descrição', colDesc, yPos + (lineHeight + 10) / 2 + 2);
+            doc.text('Qtd.', colQty, yPos + (lineHeight + 10) / 2 + 2, { align: 'right' });
+            doc.text('Vlr. Unit.', colUnitVal, yPos + (lineHeight + 10) / 2 + 2, { align: 'right' });
+            doc.text('Vlr. Total', colTotalVal, yPos + (lineHeight + 10) / 2 + 2, { align: 'right' });
             
-            yPos += lineHeight + 10;
+            yPos += lineHeight + 15;
 
             let grandTotal = 0;
-            doc.setFont('helvetica', 'normal');
+            doc.setFont('Inter', 'Normal');
+            doc.setTextColor('#333');
 
             for (const productId of Object.keys(cart)) {
                 const product = products.find(p => p.id === productId);
-                if (!product) continue; // Skip if product somehow not found (shouldn't happen with current logic)
+                if (!product) continue;
 
                 const quantity = cart[productId];
                 const subtotal = product.price * quantity;
                 grandTotal += subtotal;
 
-                if (yPos + imageSize + 10 > doc.internal.pageSize.height - margin) {
+                // Adiciona nova página se não houver espaço suficiente
+                if (yPos + imageSize + 15 > doc.internal.pageSize.height - margin) {
                     doc.addPage();
                     yPos = margin;
 
-                    doc.setFillColor(242, 242, 242);
-                    doc.rect(margin, yPos, doc.internal.pageSize.width - (2 * margin), lineHeight + 5, 'F');
-                    doc.setFontSize(10);
-                    doc.setFont('helvetica', 'bold');
-                    doc.setTextColor(51, 51, 51);
-                    doc.text('Imagem', colImage, yPos + lineHeight / 2 + 2);
-                    doc.text('SKU', colSKU, yPos + lineHeight / 2 + 2);
-                    doc.text('Descrição', colDesc, yPos + lineHeight / 2 + 2);
-                    doc.text('Qtd.', colQty, yPos + lineHeight / 2 + 2, { align: 'right' });
-                    doc.text('Vlr. Unit.', colUnitVal, yPos + lineHeight / 2 + 2, { align: 'right' });
-                    doc.text('Vlr. Total', colTotalVal, yPos + lineHeight / 2 + 2, { align: 'right' });
-                    yPos += lineHeight + 10;
+                    doc.setFillColor('#FFCDD2');
+                    doc.rect(margin, yPos, tableWidth, lineHeight + 10, 'F');
+                    doc.setFontSize(11);
+                    doc.setFont('Inter', 'Bold');
+                    doc.setTextColor('#333');
+                    doc.text('Imagem', colImage, yPos + (lineHeight + 10) / 2 + 2);
+                    doc.text('SKU', colSKU, yPos + (lineHeight + 10) / 2 + 2);
+                    doc.text('Descrição', colDesc, yPos + (lineHeight + 10) / 2 + 2);
+                    doc.text('Qtd.', colQty, yPos + (lineHeight + 10) / 2 + 2, { align: 'right' });
+                    doc.text('Vlr. Unit.', colUnitVal, yPos + (lineHeight + 10) / 2 + 2, { align: 'right' });
+                    doc.text('Vlr. Total', colTotalVal, yPos + (lineHeight + 10) / 2 + 2, { align: 'right' });
+                    yPos += lineHeight + 15;
+                    doc.setFont('Inter', 'Normal');
+                    doc.setTextColor('#333');
                 }
 
+                // Adiciona imagem do produto ao PDF
                 try {
                     const imgData = await getImageBase64(product.image);
                     doc.addImage(imgData, 'PNG', colImage, yPos, imageSize, imageSize);
@@ -460,10 +568,8 @@
                 }
                 
                 doc.setFontSize(9);
-                doc.setTextColor(51, 51, 51);
-
                 doc.text(product.id, colSKU, yPos + lineHeight / 2 - 5);
-                const productNameLines = doc.splitTextToSize(product.name, colQty - colDesc - 10);
+                const productNameLines = doc.splitTextToSize(product.name, colQty - colDesc - 20);
                 doc.text(productNameLines, colDesc, yPos + lineHeight / 2 - 5);
 
                 doc.text(quantity.toString(), colQty, yPos + lineHeight / 2, { align: 'right' });
@@ -471,21 +577,23 @@
                 doc.text(formatCurrency(subtotal), colTotalVal, yPos + lineHeight / 2, { align: 'right' });
 
                 yPos += imageSize + 10;
+                doc.setDrawColor('#E53935'); // Vermelho vibrante para as linhas
                 doc.line(margin, yPos, doc.internal.pageSize.width - margin, yPos);
                 yPos += 5;
             }
 
             yPos += 20;
-            doc.setFontSize(14);
-            doc.setFont('helvetica', 'bold');
-            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(18);
+            doc.setFont('Inter', 'Bold');
+            doc.setTextColor('#B71C1C'); // Vermelho Escuro
 
-            doc.text('TOTAL GERAL:', doc.internal.pageSize.width - margin - 150, yPos, { align: 'right' });
+            doc.text('TOTAL GERAL:', doc.internal.pageSize.width - margin - 180, yPos, { align: 'right' });
             doc.text(formatCurrency(grandTotal), doc.internal.pageSize.width - margin - 5, yPos, { align: 'right' });
             
             doc.save('catalogo-amarok-carrinho.pdf');
         };
 
+        // Construção da mensagem para WhatsApp
         const buildWhatsappMessage = () => {
             let message = "Olá! Tenho uma lista de peças do catálogo Amarok:\n\n";
             let total = 0;
@@ -496,14 +604,15 @@
                 const quantity = cart[id];
                 const subtotal = product.price * quantity;
                 total += subtotal;
-                message += `${quantity}x ${product.name} (SKU: ${product.id}) - ${formatCurrency(product.price)} un. = ${formatCurrency(subtotal)}\n`;
+                message += `*${quantity}x* ${product.name} (SKU: _${product.id}_) - ${formatCurrency(product.price)} un. = *${formatCurrency(subtotal)}*\n`;
             });
 
-            message += `\nTotal Geral: ${formatCurrency(total)}\n\n`;
+            message += `\n*Total Geral:* ${formatCurrency(total)}\n\n`;
             message += "Por favor, gostaria de mais informações sobre esses itens.";
             return encodeURIComponent(message);
         };
 
+        // Abertura do modal de seleção de vendedor WhatsApp
         const openWhatsappSellerModal = () => {
             if (Object.keys(cart).length === 0) {
                 alert('Seu carrinho está vazio. Adicione itens antes de enviar pelo WhatsApp.');
@@ -515,7 +624,7 @@
 
             whatsappSellers.forEach(seller => {
                 const button = document.createElement('button');
-                button.className = 'w-full bg-green-600 text-white font-semibold py-3 px-6 rounded-full shadow-lg hover:bg-green-700 transition-transform transform hover:scale-105 flex items-center justify-center gap-2';
+                button.className = 'w-full bg-green-600 text-white font-bold py-3 px-6 rounded-full shadow-lg hover:bg-green-700 transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2 text-lg focus:outline-none focus:ring-4 focus:ring-green-300';
                 button.innerHTML = `<i class="fab fa-whatsapp"></i> <span>${seller.name}</span>`;
                 button.onclick = () => {
                     const whatsappUrl = `https://wa.me/${seller.phone}?text=${encodedMessage}`;
@@ -525,43 +634,40 @@
                 whatsappButtonsContainer.appendChild(button);
             });
 
-            whatsappSellerModal.classList.remove('hidden');
-            setTimeout(() => {
-                whatsappSellerModal.querySelector('div').classList.remove('scale-95', 'opacity-0');
-            }, 10);
+            openModal(whatsappSellerModal);
         };
 
         const closeWhatsappSellerModal = () => {
-            whatsappSellerModal.querySelector('div').classList.add('scale-95', 'opacity-0');
-            setTimeout(() => {
-                whatsappSellerModal.classList.add('hidden');
-            }, 300);
+            closeModalHandler(whatsappSellerModal);
         };
 
-        // --- INITIALIZATION ---
+        // --- INICIALIZAÇÃO DA APLICAÇÃO ---
         document.addEventListener('DOMContentLoaded', () => {
-            initializeDOMElements(); // Initialize all DOM elements here
-            renderProducts();
+            initializeDOMElements(); // Garante que todos os elementos DOM estão carregados
+            renderProducts(); // Renderiza os produtos inicialmente
             
-            // Add event listeners only after elements are initialized
-            if (cartButton) cartButton.addEventListener('click', openModal);
-            if (closeModal) closeModal.addEventListener('click', closeModalHandler);
+            // Listeners para o Modal do Carrinho
+            if (cartButton) cartButton.addEventListener('click', () => openModal(cartModal));
+            if (closeModal) closeModal.addEventListener('click', () => closeModalHandler(cartModal));
             if (cartModal) cartModal.addEventListener('click', (e) => {
-                if (e.target === cartModal) {
-                    closeModalHandler();
+                if (e.target === cartModal) { // Fecha o modal se clicar fora do conteúdo
+                    closeModalHandler(cartModal);
                 }
             });
             if (downloadPdfButton) downloadPdfButton.addEventListener('click', generatePdf);
             if (sendWhatsappButton) sendWhatsappButton.addEventListener('click', openWhatsappSellerModal);
 
-            if (closeWhatsappModal) closeWhatsappModal.addEventListener('click', closeWhatsappSellerModal);
+            // Listeners para o Modal de Vendedor WhatsApp
+            if (closeWhatsappModal) closeWhatsappModal.addEventListener('click', () => closeModalHandler(whatsappSellerModal));
             if (whatsappSellerModal) whatsappSellerModal.addEventListener('click', (e) => {
-                if (e.target === whatsappSellerModal) {
-                    closeWhatsappSellerModal();
+                if (e.target === whatsappSellerModal) { // Fecha o modal se clicar fora do conteúdo
+                    closeModalHandler(whatsappSellerModal);
                 }
             });
             
-            renderCart();
+            // Os Listeners e lógica para o zoom da imagem foram removidos.
+
+            renderCart(); // Renderiza o carrinho inicialmente (pode estar vazio)
         });
     </script>
 </body>

@@ -407,14 +407,23 @@
             const lineHeight = 18;
             const imageSize = 60;
 
-            // Logo
-            const logoImg = new Image();
-            logoImg.src = "https://http2.mlstatic.com/storage/mshops-appearance-api/images/16/130087516/logo-2021060911130847000.png";
-            await new Promise(resolve => logoImg.onload = resolve);
-            const logoWidth = 100;
-            const logoHeight = logoImg.naturalHeight * (logoWidth / logoImg.naturalWidth);
-            doc.addImage(logoImg, 'PNG', doc.internal.pageSize.width / 2 - (logoWidth / 2), yPos, logoWidth, logoHeight);
-            yPos += logoHeight + 15;
+            // Logo - Load and add the logo from the provided URL
+            const logoUrl = "https://http2.mlstatic.com/storage/mshops-appearance-api/images/16/130087516/logo-2021060911130847000.png";
+            try {
+                const logoImgData = await getImageBase64(logoUrl);
+                const logoWidth = 120; // Increased logo width for better visibility
+                const logoHeight = 40; // Fixed height, adjust as needed or calculate proportionally
+                doc.addImage(logoImgData, 'PNG', doc.internal.pageSize.width / 2 - (logoWidth / 2), yPos, logoWidth, logoHeight);
+                yPos += logoHeight + 15;
+            } catch (e) {
+                console.error("Erro ao carregar a logo para o PDF:", e);
+                // Fallback if logo fails to load
+                doc.setFontSize(16);
+                doc.setFont('helvetica', 'bold');
+                doc.text('Capricho Imports', doc.internal.pageSize.width / 2, yPos + 10, { align: 'center' });
+                yPos += 30;
+            }
+            
 
             doc.setFontSize(24);
             doc.setFont('helvetica', 'bold');
